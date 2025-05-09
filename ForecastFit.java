@@ -1,4 +1,3 @@
-//this is a program
 // Required libraries: Gson (https://github.com/google/gson)
 // You can add Gson to your classpath or use Maven/Gradle for dependency management
 
@@ -6,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Scanner;
 
 import com.google.gson.JsonArray;
@@ -14,8 +14,8 @@ import com.google.gson.JsonParser;
 
 public class ForecastFit {
 
-    private static final String API_KEY = "fl9QNs82oVelaHd0lgmX3AiFWWWiiuCs";
-    private static final String BASE_URL = "https://api.tomorrow.io/v4/weather/forecast?location=42.3478,-71.0466&timesteps=1d&units=imperial&apikey=";
+    private static final String WEATHER_API_KEY = "fl9QNs82oVelaHd0lgmX3AiFWWWiiuCs";
+    private static final String GEOCODING_API_KEY = "8c069a4b476d47f5a6fd99bf3f21b852"; // Updated OpenCage API key
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -24,7 +24,16 @@ public class ForecastFit {
 
         String userInput = scanner.nextLine().trim().toLowerCase();
         if (userInput.equals("yes")) {
-            String forecastJson = getWeatherForecast();
+            System.out.print("Enter your city and state or address (e.g., 'Issaquah, WA'): ");
+            String locationInput = scanner.nextLine().trim();
+
+            String coordinates = getCoordinatesFromLocation(locationInput);
+            if (coordinates == null) {
+                System.out.println("❌ Unable to convert location to coordinates.");
+                return;
+            }
+
+            String forecastJson = getWeatherForecast(coordinates);
             if (forecastJson != null) {
                 generateOutfitRecommendation(forecastJson);
             } else {
@@ -36,11 +45,47 @@ public class ForecastFit {
         scanner.close();
     }
 
-    private static String getWeatherForecast() {
+    private static String getCoordinatesFromLocation(String location) {
         try {
-            URL url = new URL(BASE_URL + API_KEY);
-            System.out.println("Using API URL: " + BASE_URL + API_KEY);
+            String encodedLocation = URLEncoder.encode(location, "UTF-8");
+            String geocodeUrl = "https://api.opencagedata.com/geocode/v1/json?q=" + encodedLocation + "&key=" + GEOCODING_API_KEY;
+
+            URL url = new URL(geocodeUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+
+            JsonObject json = JsonParser.parseString(content.toString()).getAsJsonObject();
+            JsonArray results = json.getAsJsonArray("results");
+            if (results.size() == 0) return null;
+
+            JsonObject geometry = results.get(0).getAsJsonObject().getAsJsonObject("geometry");
+            double lat = geometry.get("lat").getAsDouble();
+            double lng = geometry.get("lng").getAsDouble();
+
+            return lat + "," + lng;
+        } catch (Exception e) {
+            System.out.println("❌ Geocoding error:");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String getWeatherForecast(String location) {
+        try {
+            String fullUrl = "https://api.tomorrow.io/v4/weather/forecast?location=" + location + "&timesteps=1d&units=imperial&apikey=" + WEATHER_API_KEY;
+
+            System.out.println("Using API URL: " + fullUrl);
             System.out.println("Fetching weather data...");
+
+            URL url = new URL(fullUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Accept", "application/json");
@@ -54,7 +99,7 @@ public class ForecastFit {
             in.close();
 
             System.out.println("✅ Raw JSON response:");
-            System.out.println(content.toString());
+            System.out.println(response.toString());
 
             return response.toString();
         } catch (Exception e) {
@@ -66,13 +111,15 @@ public class ForecastFit {
 
     private static void generateOutfitRecommendation(String json) {
         JsonObject forecastData = JsonParser.parseString(json).getAsJsonObject();
-        JsonArray timelines = forecastData.getAsJsonObject("data").getAsJsonArray("timelines");
-        JsonArray intervals = timelines.get(0).getAsJsonObject().getAsJsonArray("intervals");
-        JsonObject today = intervals.get(0).getAsJsonObject().getAsJsonObject("values");
-
+        JsonArray daily = forecastData.getAsJsonObject("timelines").getAsJsonArray("daily");
+        JsonObject today = daily.get(0).getAsJsonObject().getAsJsonObject("values");
+        
+        double temperatureAvg = today.get("temperatureAvg").getAsDouble(); 
         double temperature = today.get("temperatureMax").getAsDouble();
-        StringBuilder recommendation = new StringBuilder("🌡 Today's high is " + temperature + "°F. ");
-
+        StringBuilder recommendation = new StringBuilder();
+        recommendation.append("🌤 Current (avg) temp: ").append(temperatureAvg).append("°F\n");
+        recommendation.append("🌡 Today's high: ").append(temperatureMax).append("°F\n");
+        
         if (temperature < 32) {
             recommendation.append("Bundle up! Wear thermal layers, a heavy coat, gloves, and a hat. 🧣🧤");
         } else if (temperature < 50) {
@@ -84,7 +131,8 @@ public class ForecastFit {
         } else {
             recommendation.append("Hot! Wear breathable fabrics and stay hydrated. 🩳🧢");
         }
-
+    
         System.out.println(recommendation.toString());
     }
+    
 }
