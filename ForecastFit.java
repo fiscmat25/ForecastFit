@@ -14,8 +14,8 @@ import com.google.gson.JsonParser;
 
 public class ForecastFit {
 
-    private static final String WEATHER_API_KEY = "fl9QNs82oVelaHd0lgmX3AiFWWWiiuCs";
-    private static final String GEOCODING_API_KEY = "8c069a4b476d47f5a6fd99bf3f21b852"; // Updated OpenCage API key
+    private static final String WEATHER_API_KEY = "fl9QNs82oVelaHd0lgmX3AiFWWWiiuCs"; // updated Tomorrow.io API key
+    private static final String GEOCODING_API_KEY = "8c069a4b476d47f5a6fd99bf3f21b852"; // updated OpenCage API key
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -24,12 +24,12 @@ public class ForecastFit {
 
         String userInput = scanner.nextLine().trim().toLowerCase();
         if (userInput.equals("yes")) {
-            System.out.print("Enter your city and state or address (e.g., 'Issaquah, WA'): ");
+            System.out.print("Enter your city and state or address (e.g., 'Issaquah, WA'): "); // example format
             String locationInput = scanner.nextLine().trim();
 
             String coordinates = getCoordinatesFromLocation(locationInput);
             if (coordinates == null) {
-                System.out.println("❌ Unable to convert location to coordinates.");
+                System.out.println("Unable to convert location to coordinates.");
                 return;
             }
 
@@ -40,7 +40,7 @@ public class ForecastFit {
                 System.out.println("Sorry, I couldn't fetch the weather forecast.");
             }
         } else {
-            System.out.println("Okay, come back anytime you need fashion advice!");
+            System.out.println("Okay, come back anytime you need fashion advice!"); // default no response
         }
         scanner.close();
     }
@@ -48,7 +48,7 @@ public class ForecastFit {
     private static String getCoordinatesFromLocation(String location) {
         try {
             String encodedLocation = URLEncoder.encode(location, "UTF-8");
-            String geocodeUrl = "https://api.opencagedata.com/geocode/v1/json?q=" + encodedLocation + "&key=" + GEOCODING_API_KEY;
+            String geocodeUrl = "https://api.opencagedata.com/geocode/v1/json?q=" + encodedLocation + "&key=" + GEOCODING_API_KEY; // fully piecing the opencagedata together
 
             URL url = new URL(geocodeUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -72,7 +72,7 @@ public class ForecastFit {
 
             return lat + "," + lng;
         } catch (Exception e) {
-            System.out.println("❌ Geocoding error:");
+            System.out.println("Geocoding error:");
             e.printStackTrace();
             return null;
         }
@@ -98,12 +98,12 @@ public class ForecastFit {
             }
             in.close();
 
-            System.out.println("✅ Raw JSON response:");
+            System.out.println("Raw JSON response:");
             System.out.println(response.toString());
 
             return response.toString();
         } catch (Exception e) {
-            System.out.println("❌ Error fetching weather:");
+            System.out.println("Error fetching weather:");
             e.printStackTrace();
             return null;
         }
@@ -117,19 +117,19 @@ public class ForecastFit {
         double temperatureAvg = today.get("temperatureAvg").getAsDouble(); 
         double temperature = today.get("temperatureMax").getAsDouble();
         StringBuilder recommendation = new StringBuilder();
-        recommendation.append("🌤 Current (avg) temp: ").append(temperatureAvg).append("°F\n");
-        recommendation.append("🌡 Today's high: ").append(temperatureMax).append("°F\n");
-        
+        recommendation.append("Current (avg) temp: ").append(temperatureAvg).append("°F\n");
+        recommendation.append("Today's high: ").append(temperatureMax).append("°F\n");
+
         if (temperature < 32) {
-            recommendation.append("Bundle up! Wear thermal layers, a heavy coat, gloves, and a hat. 🧣🧤");
+            recommendation.append("Bundle up! Wear thermal layers, a heavy coat, gloves, and a hat.");
         } else if (temperature < 50) {
-            recommendation.append("It's chilly. Wear a jacket and maybe a scarf. 🧥");
+            recommendation.append("It's chilly. Wear a jacket and maybe a scarf.");
         } else if (temperature < 70) {
-            recommendation.append("Mild weather. A hoodie or light sweater works well. 👕");
+            recommendation.append("Mild weather. A hoodie or light sweater works well.");
         } else if (temperature < 85) {
-            recommendation.append("Warm day! T-shirts and shorts should be fine. 😎");
+            recommendation.append("Warm day! T-shirts and shorts should be fine.");
         } else {
-            recommendation.append("Hot! Wear breathable fabrics and stay hydrated. 🩳🧢");
+            recommendation.append("Hot! Wear breathable fabrics and stay hydrated.");
         }
     
         System.out.println(recommendation.toString());
