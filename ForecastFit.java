@@ -19,7 +19,7 @@ public class ForecastFit {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("👋 Hi there! I can help you choose an outfit based on the weather.");
+        System.out.println("Hi there! I can help you choose an outfit based on the weather.");
         System.out.print("Would you like your outfit recommendation for today? (yes/no): ");
 
         String userInput = scanner.nextLine().trim().toLowerCase();
@@ -31,7 +31,7 @@ public class ForecastFit {
                 System.out.println("Sorry, I couldn't fetch the weather forecast.");
             }
         } else {
-            System.out.println("Okay, come back anytime you need fashion advice 🌦👕!");
+            System.out.println("Okay, come back anytime you need fashion advice!");
         }
         scanner.close();
     }
@@ -39,8 +39,11 @@ public class ForecastFit {
     private static String getWeatherForecast() {
         try {
             URL url = new URL(BASE_URL + API_KEY);
+            System.out.println("Using API URL: " + BASE_URL + API_KEY);
+            System.out.println("Fetching weather data...");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "application/json");
 
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
@@ -49,8 +52,13 @@ public class ForecastFit {
                 response.append(inputLine);
             }
             in.close();
+
+            System.out.println("✅ Raw JSON response:");
+            System.out.println(content.toString());
+
             return response.toString();
         } catch (Exception e) {
+            System.out.println("❌ Error fetching weather:");
             e.printStackTrace();
             return null;
         }
