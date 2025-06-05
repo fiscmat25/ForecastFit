@@ -118,7 +118,7 @@ public class ForecastFit {
         double temperature = today.get("temperatureMax").getAsDouble();
         StringBuilder recommendation = new StringBuilder();
         recommendation.append("Current (avg) temp: ").append(temperatureAvg).append("°F\n");
-        recommendation.append("Today's high: ").append(temperatureMax).append("°F\n");
+        recommendation.append("Today's high: ").append(temperature).append("°F\n");
 
         if (temperature < 32) {
             recommendation.append("Bundle up! Wear thermal layers, a heavy coat, gloves, and a hat.");
